@@ -92,15 +92,94 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const {username} = request
+
+  const {id} = request.params
+
+  const idAlreadExist = username.todos.some((item)=>{
+    return item.id === id
+  })
+  
+  if(!idAlreadExist){
+    return response.status(404).json({error:"id not exists"})
+  }
+  const {title, deadline} = request.body
+
+  let obj = {}
+
+  const newUsername = username.todos.filter((item)=>{
+    if(item.id === id){
+      item.title = title
+      item.deadline = new Date(deadline)
+      obj = item
+    }
+    return item
+  })
+  
+  username.todos = newUsername
+  
+  return response.status(201).send(obj)
+
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+
+  const {username}= request
+
+  const {id} = request.params
+
+  let idNotExists = false
+
+  let obj = {}
+
+  const newUsername = username.todos.filter((item)=>{
+    if(item.id === id){
+      idNotExists = true
+      item.done = true
+      obj = item
+      return item
+    } 
+    return item   
+  })
+
+ if(idNotExists === false){
+   return response.status(404).json({error:"Id not Exists"})
+
+ }
+
+  username.todos = newUsername
+
+  return response.status(201).json(obj)
+  
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const {id} = request.params
+
+  const {username} = request
+
+  const getToDelete = username.todos.filter((item) =>{
+    if(item.id === id){
+      return item
+    }    
+  })
+  
+  if(getToDelete.length === 0){
+    return response.status(404).json({error:"Id not found"})
+  }
+
+  const indexToDelete = getToDelete[0]
+
+  const newUsername = username.todos.filter((item)=>{
+    if(item.id !== indexToDelete.id){
+      return item
+    }
+  })
+
+  username.todos = newUsername
+
+  return response.status(204).send(username.todos)
+
 });
 
 module.exports = app;
